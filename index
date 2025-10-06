@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Calculadora de Dano</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-color:#0a0a0f;
+  --card-bg:rgba(255,255,255,0.08);
+  --accent:#4fc3f7;
+  --accent-light:rgba(79,195,247,0.15);
+  --text:#fff;
+}
+body{
+  margin:0;
+  font-family:"Poppins",sans-serif;
+  background:var(--bg-color);
+  color:var(--text);
+  overflow-x:hidden;
+  height:100vh;
+  transition:background-position 0.2s ease;
+}
+body::before{
+  content:"";
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:radial-gradient(circle at var(--x,50%) var(--y,50%), var(--accent-light), transparent 70%);
+  z-index:0;
+  transition:background 0.2s ease;
+}
+main{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:2rem;
+  padding:2rem;
+}
+.card{
+  width:700px;
+  background:var(--card-bg);
+  padding:2rem;
+  border-radius:20px;
+  box-shadow:0 0 25px rgba(79,195,247,0.1);
+  backdrop-filter:blur(10px);
+}
+h1{text-align:center;margin-bottom:1.5rem;color:var(--accent);}
+label{display:block;margin-top:1rem;font-weight:500;}
+input, select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  margin-top:5px;
+  font-size:16px;
+}
+button{
+  margin-top:1.5rem;
+  width:100%;
+  background:var(--accent);
+  border:none;
+  color:black;
+  font-size:16px;
+  font-weight:bold;
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
+button:hover{background:#6fd3ff;}
+.results{
+  margin-top:1.5rem;
+  background:rgba(255,255,255,0.05);
+  padding:1rem;
+  border-radius:12px;
+}
+.results p{margin:8px 0;}
+.sidebar{
+  width:260px;
+  background:rgba(255,255,255,0.06);
+  border-radius:16px;
+  padding:1rem;
+  height:fit-content;
+  font-size:14px;
+}
+.sidebar h3{text-align:center;color:var(--accent);margin-bottom:.8rem;}
+.sidebar ul{list-style:none;padding:0;line-height:1.6;}
+.sidebar li{border-bottom:1px solid rgba(255,255,255,0.1);padding:3px 0;}
+
+/* Assinatura animada */
+#signature {
+  position: fixed;
+  bottom: 15px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 100;
+}
+.sig-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  animation: float 2s ease-in-out infinite alternate;
+}
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-5px); }
+}
+#sig-text {
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  font-weight: bold;
+  background: linear-gradient(90deg, #ff0055, #ff9900, #33ff77, #3399ff);
+  background-clip: text;            /* ✅ versão padrão */
+  -webkit-background-clip: text;    /* ✅ compatibilidade com navegadores WebKit */
+  color: transparent;
+  animation: colorShift 3s infinite linear;
+}
+@keyframes colorShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.language-select{
+  margin-bottom:15px;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="card">
+    <div class="language-select">
+      <select id="language">
+        <option value="pt">Português</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+
+    <h1 id="title">Calculadora de Dano</h1>
+
+    <label for="hp" id="labelHp">Vida do Mob:</label>
+    <input type="text" id="hp" placeholder="ex: 10dc, 1e45, 500m">
+
+    <label for="dmg" id="labelDmg">Seu Dano por Ultimate (opcional):</label>
+    <input type="text" id="dmg" placeholder="ex: 250b, 1t, 5q">
+
+    <label for="cooldown" id="labelCooldown">Cooldown da Ultimate:</label>
+    <select id="cooldown">
+      <option value="20">20 segundos</option>
+      <option value="30">30 segundos</option>
+    </select>
+
+    <label for="time" id="labelTime">Tempo (minutos, 1 a 15):</label>
+    <input type="number" id="time" min="1" max="15" value="5">
+
+    <button id="calc">Calcular</button>
+
+    <div class="results" id="results" style="display:none;">
+      <p><strong id="resTotal">Dano necessário total:</strong> <span id="totalDano"></span></p>
+      <p><strong id="resPerMin">Dano por minuto necessário:</strong> <span id="danoMinuto"></span></p>
+      <p><strong id="resTime">Tempo estimado para matar:</strong> <span id="tempoEstimado"></span></p>
+      <p><strong id="resUlt">Ultimates necessárias:</strong> <span id="ultNeeded"></span></p>
+      <p><strong id="resDmgUlt">Dano por Ultimate necessário:</strong> <span id="danoPorUlt"></span></p>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <h3>Dicionário de Valores</h3>
+    <ul>
+      <li>1k = mil</li>
+      <li>1m = milhão</li>
+      <li>1b = bilhão</li>
+      <li>1t = trilhão</li>
+      <li>1q = quadrilhão</li>
+      <li>1qi = quintilhão</li>
+      <li>1sx = sextilhão</li>
+      <li>1sp = septilhão</li>
+      <li>1oc = octilhão</li>
+      <li>1no = nonilhão</li>
+      <li>1dc = decilhão</li>
+      <li>1ud = undecilhão</li>
+      <li>1dd = duodecilhão</li>
+      <li>1td = tredecilhão</li>
+      <li>1qd = quattuordecilhão</li>
+      <li>1qv = quindecilhão</li>
+      <li>1sd = sexdecilhão</li>
+      <li>1spc = septendecilhão</li>
+      <li>1od = octodecilhão</li>
+      <li>1nd = novendecilhão</li>
+      <li>1vg = vigintilhão</li>
+    </ul>
+  </div>
+</main>
+
+<!-- Assinatura animada -->
+<div id="signature">
+  <img src="https://media.tenor.com/mPBE8ykscLIAAAAj/monkeypls.gif" alt="Foto" class="sig-img">
+  <span id="sig-text">JorginhuDuGrau</span>
+</div>
+
+<script>
+document.body.addEventListener('mousemove', e=>{
+  document.body.style.setProperty('--x', e.clientX+'px');
+  document.body.style.setProperty('--y', e.clientY+'px');
+});
+
+const hp = document.getElementById('hp');
+const dmg = document.getElementById('dmg');
+const time = document.getElementById('time');
+const calc = document.getElementById('calc');
+const cooldown = document.getElementById('cooldown');
+const results = document.getElementById('results');
+const totalDano = document.getElementById('totalDano');
+const danoMinuto = document.getElementById('danoMinuto');
+const tempoEstimado = document.getElementById('tempoEstimado');
+const ultNeeded = document.getElementById('ultNeeded');
+const danoPorUlt = document.getElementById('danoPorUlt');
+
+const suffixes = {
+  k:1e3,m:1e6,b:1e9,t:1e12,q:1e15,qi:1e18,sx:1e21,sp:1e24,
+  oc:1e27,no:1e30,dc:1e33,ud:1e36,dd:1e39,td:1e42,qd:1e45,
+  qv:1e48,sd:1e51,spc:1e54,od:1e57,nd:1e60,vg:1e63
+};
+
+function parseValue(v){
+  if(!v) return 0;
+  v = v.toLowerCase().trim();
+  if(!isNaN(v)) return parseFloat(v);
+  const match = v.match(/^([\d.,]+)\s*([a-z]+)/i);
+  if(match){
+    let num=parseFloat(match[1].replace(',','.'));
+    let suf=match[2];
+    if(suffixes[suf]) return num*suffixes[suf];
+  }
+  return parseFloat(v.replace(',','.'))||0;
+}
+
+function formatNumber(num){
+  if(num<1000) return num.toFixed(2);
+  const entries = Object.entries(suffixes).reverse();
+  for(const [suf,val] of entries){
+    if(num>=val) return (num/val).toFixed(2)+suf;
+  }
+  return num.toExponential(2);
+}
+
+calc.addEventListener('click', ()=>{
+  const hpVal=parseValue(hp.value);
+  const dmgVal=parseValue(dmg.value);
+  let minutos=Math.min(Math.max(parseFloat(time.value)||1,1),15);
+  const cd=parseFloat(cooldown.value);
+
+  if(!hpVal||hpVal<=0){alert("Informe a vida do mob!");return;}
+
+  let danoPorMinuto=0,tempoNecessario=0,ultTotal=0,danoUlt=0;
+
+  if(dmgVal>0){
+    ultTotal=Math.ceil(hpVal/dmgVal);
+    tempoNecessario=(ultTotal*cd)/60; // minutos
+    danoPorMinuto=dmgVal*60/cd;
+    danoUlt=dmgVal;
+  } else {
+    const tempoSegundos=minutos*60;
+    ultTotal=Math.ceil(tempoSegundos/cd);
+    danoUlt=hpVal/ultTotal;
+    danoPorMinuto=danoUlt*ultTotal/minutos;
+    tempoNecessario=minutos;
+  }
+
+  totalDano.textContent=formatNumber(hpVal);
+  danoMinuto.textContent=formatNumber(danoPorMinuto);
+  tempoEstimado.textContent=tempoNecessario.toFixed(2)+" min";
+  ultNeeded.textContent=ultTotal;
+  danoPorUlt.textContent=formatNumber(danoUlt);
+
+  results.style.display='block';
+});
+
+// Multilanguage
+const translations = {
+  pt:{
+    title:"Calculadora de Dano",
+    labelHp:"Vida do Mob:",
+    labelDmg:"Seu Dano por Ultimate (opcional):",
+    labelCooldown:"Cooldown da Ultimate:",
+    labelTime:"Tempo (minutos, 1 a 15):",
+    calcBtn:"Calcular",
+    resTotal:"Dano necessário total:",
+    resPerMin:"Dano por minuto necessário:",
+    resTime:"Tempo estimado para matar:",
+    resUlt:"Ultimates necessárias:",
+    resDmgUlt:"Dano por Ultimate necessário:"
+  },
+  en:{
+    title:"Damage Calculator",
+    labelHp:"Mob HP:",
+    labelDmg:"Your Ultimate Damage (optional):",
+    labelCooldown:"Ultimate Cooldown:",
+    labelTime:"Time (minutes, 1 to 15):",
+    calcBtn:"Calculate",
+    resTotal:"Total damage needed:",
+    resPerMin:"Damage per minute needed:",
+    resTime:"Estimated time to kill:",
+    resUlt:"Ultimates needed:",
+    resDmgUlt:"Damage per Ultimate needed:"
+  }
+};
+
+const languageSelect = document.getElementById('language');
+languageSelect.addEventListener('change', ()=>updateLanguage(languageSelect.value));
+
+function updateLanguage(lang){
+  const t = translations[lang];
+  document.getElementById('title').textContent = t.title;
+  document.getElementById('labelHp').textContent = t.labelHp;
+  document.getElementById('labelDmg').textContent = t.labelDmg;
+  document.getElementById('labelCooldown').textContent = t.labelCooldown;
+  document.getElementById('labelTime').textContent = t.labelTime;
+  document.getElementById('calc').textContent = t.calcBtn;
+  document.getElementById('resTotal').textContent = t.resTotal;
+  document.getElementById('resPerMin').textContent = t.resPerMin;
+  document.getElementById('resTime').textContent = t.resTime;
+  document.getElementById('resUlt').textContent = t.resUlt;
+  document.getElementById('resDmgUlt').textContent = t.resDmgUlt;
+}
+
+// Inicial
+updateLanguage('pt');
+</script>
+
+</body>
+</html>
